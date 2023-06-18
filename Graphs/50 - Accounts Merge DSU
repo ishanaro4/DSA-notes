@@ -1,0 +1,126 @@
+// Given a list of accounts where each element accounts[i] is a list of strings,
+//  where the first element accounts[i][0] is a name, and the rest of the elements 
+//  are emails representing emails of the account.
+
+// Now, we would like to merge these accounts. 
+// Two accounts definitely belong to the same person 
+// if there is some common email to both accounts. Note that even 
+// if two accounts have the same name, they may belong to different people 
+// as people could have the same name. A person can have any number of accounts 
+// initially, but all of their accounts definitely have the same name.
+
+// After merging the accounts, return the accounts in the following format: 
+// the first element of each account is the name, 
+// and the rest of the elements are emails in sorted order. 
+// The accounts themselves can be returned in any order.
+
+// Input: accounts = [["John","johnsmith@mail.com","john_newyork@mail.com"],["John","johnsmith@mail.com","john00@mail.com"],["Mary","mary@mail.com"],["John","johnnybravo@mail.com"]]
+// Output: [["John","john00@mail.com","john_newyork@mail.com","johnsmith@mail.com"],["Mary","mary@mail.com"],["John","johnnybravo@mail.com"]]
+// Explanation:
+// The first and second John's are the same person as they have the common email "johnsmith@mail.com".
+// The third John and Mary are different people as none of their email addresses are used by other accounts.
+// We could return these lists in any order, for example the answer [['Mary', 'mary@mail.com'], ['John', 'johnnybravo@mail.com'], 
+// ['John', 'john00@mail.com', 'john_newyork@mail.com', 'johnsmith@mail.com']] would still be accepted.
+// https://leetcode.com/problems/accounts-merge/description/
+
+
+
+
+class DisjointSet//time complexity for both operations= O(4ALPHA) where
+//alpha is some constant
+{
+    int rank[];//where N is number of nodes
+    int size[];
+    int parent[];
+    DisjointSet(int n){
+        rank = new int[n+1];
+        size = new int[n+1];
+        parent = new int[n+1];
+        for(int i=0;i<=n;i++) parent[i]=i;
+        Arrays.fill(rank, 0);
+        Arrays.fill(size, 1);//coz intially all will have size 1
+    }
+	int find(int X)//find parent
+        {
+          //add code here.
+          if(parent[X]==X) return X;
+          int par = find(parent[X]);
+          parent[X] = par;
+          return par;
+          
+	}
+	void unionSetByRank(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(rank[parentX] < rank[parentY]){
+             parent[parentX] = parentY;//we do this not the other way around
+             //like parent[parentY] = parentX for this condition
+             //coz to make size minimal of union and
+             //so that parent retireval time for larger rank graph is made as minimum
+             //as possible.
+         }
+         else if(rank[parentX] > rank[parentY]){
+             parent[parentY] = parentX;
+         }
+         else{
+             parent[parentX] = parentY;
+             rank[parentY]++;
+         }
+	}
+
+    void unionSetBySize(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(size[parentX] < size[parentY]){
+             parent[parentX] = parentY;
+             size[parentY] = size[parentY] + size[parentX];
+         }
+         else{
+             parent[parentY] = parentX;
+             size[parentX] = size[parentY] + size[parentX];
+         }
+    
+	}
+}
+class Solution {
+    public List<List<String>> accountsMerge(List<List<String>> accounts) {
+        int n = accounts.size();
+        DisjointSet ds = new DisjointSet(n);
+        //implicity defining index[0,1..n] to each accounts array i.e to each account array[0]..i.e name of person.
+        Map<String, Integer> map = new HashMap<>();//create map of each mail in every account array with value defining index(node) mentioned above
+        for(int i=0;i<n;i++){//add all mails to map iteratively and if mail already present that means we found common email and therefore point this node to already found node in map(make edge between both nodes).
+            for(int j=1;j<accounts.get(i).size();j++){//j=0 defines name of account therefore rejecting it
+                String mail = accounts.get(i).get(j);
+                if(map.containsKey(mail)){//make edge
+                    ds.unionSetByRank(map.get(mail), i);
+                }
+                else map.put(mail, i);//add it to map
+            }
+        }
+        List<List<String>> mergedArray = new ArrayList<>();
+        for(int i=0;i<n;i++) mergedArray.add(new ArrayList<>());
+        for(Map.Entry<String, Integer> me : map.entrySet()){//remember this method of iteration on map
+            String mail = me.getKey();
+            int node = me.getValue();
+            int parentNode = ds.find(node);//as we have already made dynamic graph therefore now find the parent node of each node and add mail to that node only
+            mergedArray.get(parentNode).add(mail);
+        }
+        List<List<String>> ans = new ArrayList<>();
+        for(int i=0;i<n;i++){
+            if(mergedArray.get(i).size()!=0){
+                List<String> temp = new ArrayList<>();
+                temp.add(accounts.get(i).get(0));//we want name as first element in each list.
+                Collections.sort(mergedArray.get(i));//sorting
+                for(String mail : mergedArray.get(i)) temp.add(mail);
+                ans.add(temp);
+            }
+        }
+        return ans;
+    }
+}

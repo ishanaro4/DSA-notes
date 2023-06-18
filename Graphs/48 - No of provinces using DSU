@@ -1,0 +1,83 @@
+class DisjointSet//time complexity for both operations= O(4ALPHA) where
+//alpha is some constant
+{
+    int rank[];//where N is number of nodes
+    int size[];
+    int parent[];
+    DisjointSet(int n){
+        rank = new int[n+1];
+        size = new int[n+1];
+        parent = new int[n+1];
+        for(int i=0;i<=n;i++) parent[i]=i;
+        Arrays.fill(rank, 0);
+        Arrays.fill(size, 1);//coz intially all will have size 1
+    }
+	int find(int X)//find parent
+        {
+          //add code here.
+          if(parent[X]==X) return X;
+          int par = find(parent[X]);
+          parent[X] = par;
+          return par;
+          
+	}
+	void unionSetByRank(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(rank[parentX] < rank[parentY]){
+             parent[parentX] = parentY;//we do this not the other way around
+             //like parent[parentY] = parentX for this condition
+             //coz to make size minimal of union and
+             //so that parent retireval time for larger rank graph is made as minimum
+             //as possible.
+         }
+         else if(rank[parentX] > rank[parentY]){
+             parent[parentY] = parentX;
+         }
+         else{
+             parent[parentX] = parentY;
+             rank[parentY]++;
+         }
+	}
+
+    void unionSetBySize(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(size[parentX] < size[parentY]){
+             parent[parentX] = parentY;
+             size[parentY] = size[parentY] + size[parentX];
+         }
+         else{
+             parent[parentY] = parentX;
+             size[parentX] = size[parentY] + size[parentX];
+         }
+    
+	}
+}
+
+class Solution {
+
+    public int findCircleNum(int[][] isConnected) {
+        int n = isConnected.length;
+        int sum = n;//intially there will be total of n components
+        DisjointSet ds = new DisjointSet(n);
+        for(int i=1;i<=n;i++){
+            for(int j=1;j<=n;j++){
+                if(isConnected[i-1][j-1]==1&& ds.find(i)!=ds.find(j)){
+                    //if there is edge and both parents arent equal then
+                    //add edge between them -->leads to decrease in noComponent by 1
+                    //else if parents are same that means its already part of component so leave as it is
+                    sum-=1;
+                    ds.unionSetByRank(i, j);
+                }
+            }
+        }
+        return sum;
+    }
+}

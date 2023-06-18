@@ -1,0 +1,82 @@
+class DisjointSet//time complexity for both operations= O(4ALPHA) where
+//alpha is some constant
+{
+    int rank[];//where N is number of nodes
+    int size[];
+    int parent[];
+    DisjointSet(int n){
+        rank = new int[n+1];
+        size = new int[n+1];
+        parent = new int[n+1];
+        for(int i=0;i<=n;i++) parent[i]=i;
+        Arrays.fill(rank, 0);
+        Arrays.fill(size, 1);//coz intially all will have size 1
+    }
+	int find(int X)//find parent
+        {
+          //add code here.
+          if(parent[X]==X) return X;
+          int par = find(parent[X]);
+          parent[X] = par;
+          return par;
+          
+	}
+	void unionSetByRank(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(rank[parentX] < rank[parentY]){
+             parent[parentX] = parentY;//we do this not the other way around
+             //like parent[parentY] = parentX for this condition
+             //coz to make size minimal of union and
+             //so that parent retireval time for larger rank graph is made as minimum
+             //as possible.
+         }
+         else if(rank[parentX] > rank[parentY]){
+             parent[parentY] = parentX;
+         }
+         else{
+             parent[parentX] = parentY;
+             rank[parentY]++;
+         }
+	}
+
+    void unionSetBySize(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(size[parentX] < size[parentY]){
+             parent[parentX] = parentY;
+             size[parentY] = size[parentY] + size[parentX];
+         }
+         else{
+             parent[parentY] = parentX;
+             size[parentX] = size[parentY] + size[parentX];
+         }
+    
+	}
+}
+
+class Solution{
+	static int spanningTree(int V, int E, int edges[][]){
+	    // Code Here. 
+	    Arrays.sort(edges, Comparator.comparingInt(edge -> edge[2]));//sort the edges by weight
+	    //in ascending order //ELOGE
+	    int sum=0;
+	    DisjointSet ds = new DisjointSet(V);
+	    for(int[] edge : edges){//E X 4ALPHA X 2
+	        if(ds.find(edge[0])!=ds.find(edge[1])){//if parent of each are different
+	            sum+=edge[2];
+	            ds.unionSetByRank(edge[0], edge[1]);
+	            //then make the edge between them and add it to sum
+	        }//if parents are same that means way to this dest node is already calualted in 
+	        //previous steps(beause parent will be same only if we made the edge before)
+	        
+	    }
+	    return sum;//total time complexity - ELOGE
+	}
+}

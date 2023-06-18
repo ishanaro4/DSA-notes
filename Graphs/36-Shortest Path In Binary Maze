@@ -1,0 +1,57 @@
+// Given an n x n binary matrix grid, return the length of the shortest clear path in the matrix.
+// If there is no clear path, return -1.
+
+// A clear path in a binary matrix is a path from the top-left cell 
+//(i.e., (0, 0)) to the bottom-right cell (i.e., (n - 1, n - 1)) such that:
+
+// All the visited cells of the path are 0.
+// All the adjacent cells of the path are 8-directionally connected 
+// (i.e., they are different and they share an edge or a corner).
+// The length of a clear path is the number of visited cells of this path.
+
+
+
+class Tuple{ //DIjkstra Algortihm application
+    int dist;
+    int row;
+    int col;
+    Tuple(int dist, int row, int col){
+        this.dist = dist;
+        this.row = row;
+        this.col = col;
+    }
+}
+
+class Solution {
+    public int shortestPathBinaryMatrix(int[][] grid) {
+        if(grid[0][0]==1) return -1;
+        int n = grid.length;
+        Deque<Tuple> queue = new ArrayDeque<>();
+        int[][] dist = new int[n][n];
+        for(int[] row : dist) Arrays.fill(row, (int)1e9);
+        dist[0][0]=1;
+        queue.add(new Tuple(1, 0, 0));//we used queue in place of priority queue as distance to
+        //neighbour is always increasing by 1(constant) thats why queue would always store distance in
+        //incresing order with min distance in front of queue always
+        
+        int[] delrow = {-1,-1,0,1,1,1,0,-1};
+        int[] delcol = {0,1,1,1,0,-1,-1,-1};
+        while(!queue.isEmpty()){
+            Tuple temp = queue.remove();
+            int i = temp.row;
+            int j = temp.col;
+            if(i==n-1&&j==n-1) return temp.dist;
+            for(int k=0;k<8;k++){
+                int row = delrow[k]+i;
+                int col = delcol[k]+j;
+                if(row>=0&&row<n&&col>=0&&col<n&&grid[row][col]==0&&(temp.dist + 1 < dist[row][col])){
+                    dist[row][col] = 1 + temp.dist;
+                    queue.add(new Tuple(dist[row][col], row, col));
+                }
+            }
+
+        }
+        return -1;
+
+    }
+}

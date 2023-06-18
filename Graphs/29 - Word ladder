@@ -1,0 +1,73 @@
+// A transformation sequence from word beginWord to word endWord using a dictionary wordList is a sequence of words beginWord -> s1 -> s2 -> ... -> sk such that:
+
+// Every adjacent pair of words differs by a single letter.
+// Every si for 1 <= i <= k is in wordList. Note that beginWord does not need to be in wordList.
+// sk == endWord
+// Given two words, beginWord and endWord, and a dictionary wordList, return the number of words 
+//in the shortest transformation sequence from beginWord to endWord, or 0 if no such sequence exists.
+
+
+// Example 1:
+
+// Input: beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]
+// Output: 5
+// Explanation: One shortest transformation sequence is "hit" -> "hot" -> "dot" -> "dog" -> cog", which is 5 words long.
+
+
+//Solution
+//we will put all the words in wordList inside Hashset which have remove and contains complexity as O(1).
+//now we have to find the shortest transformation sequence from beginWord to endWord
+//with one letter change in word in each transformation and that transformed word should be in
+//our set and for reason we should not take same word again in sequence is because we
+//have to find shortest sequence so for this if we found our transformed word is in set 
+//we would remove it from set.
+//for tranformation we take each letter of word and for each letter we replac eit with
+//26 letters of alphabet and check if it is present in set and if yes remove it from set
+//and as we are doing bfs algo put this Pair(word, sequence no+1)  ..(the first pair is (beginword, 1)
+//in queue and when we eject word from qeueue..check if it is equal to endWord 
+//if it is return sequenceno.if after everything queue gets empty and we exit the loop
+//return 0 to indicate transformation sequence is not possible
+
+//TIME COMPLEXITY MENTIONED BELOW
+class Pair{
+    String word;
+    int number;
+    Pair(String word, int number){
+        this.word = word;
+        this.number = number;
+    }
+}
+class Solution {
+    public int ladderLength(String beginWord, String endWord, List<String> wordList) {
+        Set<String> st = new HashSet<>();
+        for(String word : wordList){
+            st.add(word);
+        }
+        st.remove(beginWord);
+        Deque<Pair> queue = new ArrayDeque<>();
+        queue.add(new Pair(beginWord, 1));
+        while(!queue.isEmpty()){
+            Pair temp = queue.remove();
+            String tmpword = temp.word;
+            if(endWord.equals(tmpword)) return temp.number;
+            char[] wordArray = tmpword.toCharArray();
+            for(int i=0;i<tmpword.length();i++){// wordlength * 26 ----------
+                char save = tmpword.charAt(i);
+                for(char ch='a'; ch<='z';ch++){
+                    //char[] wordArray = tmpword.toCharArray();
+                    wordArray[i] = ch;
+                    String replacedWord = new String(wordArray);
+                    if(st.contains(replacedWord)){//O(1)
+                        st.remove(replacedWord);
+                        queue.add(new Pair(replacedWord, temp.number+1));
+                        //word goes into queue only if it is present in set..therefore
+                        //total element going in queue will be N in worst case.
+                        //so while loop of queue will run for N times.
+                    }
+                }
+                wordArray[i] = save;
+            }
+        }
+        return 0;//therefore total time complexitty is N*wordlength*26*O(1)
+    }
+}

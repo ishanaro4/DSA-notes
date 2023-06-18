@@ -1,0 +1,74 @@
+// There are n cities connected by some number of flights. 
+// You are given an array flights where flights[i] = [fromi, toi, pricei] indicates that 
+// there is a flight from city fromi to city toi with cost pricei.
+// You are also given three integers src, dst, and k, 
+// return the cheapest price from src to dst with at most k stops. 
+// If there is no such route, return -1.
+
+// Input: n = 3, flights = [[0,1,100],[1,2,100],[0,2,500]], src = 0, dst = 2, k = 1
+// Output: 200
+// Explanation:
+// The graph is shown above.
+// The optimal path with at most 1 stop from city 0 to 2 is marked in red and has cost 100 + 100 = 200.
+
+
+
+class Tuple{
+    int price;
+    int nstop;
+    int node;
+    Tuple(int nstop, int node, int price){//queue would store this tuple
+        this.price = price;
+        this.nstop = nstop;
+        this.node = node;
+    }
+}
+//in our solution rather than giving importance to dist array we will give
+//preference to nstop then dist array coz
+//u may have a dist array with distance smaller but with larger nstop
+//then afterwards if larger distance comes at the node with smaller nstop value
+//dist array wont be updated if priority is distance
+//coz smaller nstop value would help more in reaching final destination.
+
+class Solution {
+    public int findCheapestPrice(int n, int[][] flights, int src, int dst, int k) {
+        List<List<List<Integer>>> adj = new ArrayList<>();
+        for(int i=0;i<n;i++){
+            adj.add(new ArrayList<>());
+        }
+        for(int[] row : flights){
+            List<Integer> elem = new ArrayList<>();
+            elem.add(row[1]);
+            elem.add(row[2]);
+            adj.get(row[0]).add(elem);
+        }
+        Deque<Tuple> queue = new ArrayDeque<>();//we have taken queue as nstop is increasing 
+        //by one each time therefore it does not matter whether its priority queue or queue.
+        int[] dist = new int[n];
+        Arrays.fill(dist, (int)1e9);
+        dist[src] = 0;
+        queue.add(new Tuple(0, src, 0));
+        //Time complexity = ELOGV but logv is not used as priority queue is not used so
+        //only E = flights.length
+        while(!queue.isEmpty()){
+            Tuple temp = queue.remove();
+            if(temp.nstop > k) continue;//nstop would become k+1 when final destination is reached
+            //as final node nstop would also be considerd in our algo ..say 0--1--2 then at 2 nstop would be 2 for k = 1.
+            //therefore if nstop is k+1 then it means final_node is removed from queue i.e 
+            //distance for reaching this node is alreaady calculated in line 63 while adding it to queue
+            for(List<Integer> nei : adj.get(temp.node)){
+                int nei_node = nei.get(0);
+                int edge_price = nei.get(1);
+                if(temp.price + edge_price < dist[nei_node] && temp.nstop<=k){//nstop condition
+                    // to update distance as long as nstop<=k as k+1 should mean final destination.
+                    dist[nei_node] = temp.price + edge_price;
+                    queue.add(new Tuple(temp.nstop+1, nei_node, dist[nei_node]));
+
+                }
+            }
+        }
+        if(dist[dst]==(int)1e9) return -1;
+        return dist[dst];
+
+    }
+}

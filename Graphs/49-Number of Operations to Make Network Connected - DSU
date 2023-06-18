@@ -1,0 +1,123 @@
+// <!-- There are n computers numbered from 0 to n - 1 connected by ethernet cables 
+// connections forming a network where connections[i] = [ai, bi] represents a 
+// connection between computers ai and bi. Any computer can reach any other 
+// computer directly or indirectly through the network.
+
+// You are given an initial computer network connections. 
+// You can extract certain cables between two directly connected computers, 
+// and place them between any pair of disconnected computers to make them directly connected.
+
+// Return the minimum number of times you need to do this in order to 
+// make all the computers connected. If it is not possible, return -1.
+
+// Input: n = 4, connections = [[0,1],[0,2],[1,2]]
+// Output: 1
+// Explanation: Remove cable between computer 1 and 2 and place between computers 1 and 3.
+// https://leetcode.com/problems/number-of-operations-to-make-network-connected/description/ 
+
+class DisjointSet//time complexity for both operations= O(4ALPHA) where
+//alpha is some constant
+{
+    int rank[];//where N is number of nodes
+    int size[];
+    int parent[];
+    DisjointSet(int n){
+        rank = new int[n];
+        size = new int[n];
+        parent = new int[n];
+        for(int i=0;i<n;i++) parent[i]=i;
+        Arrays.fill(rank, 0);
+        Arrays.fill(size, 1);//coz intially all will have size 1
+    }
+	int find(int X)//find parent
+        {
+          //add code here.
+          if(parent[X]==X) return X;
+          int par = find(parent[X]);
+          parent[X] = par;
+          return par;
+          
+	}
+	void unionSetByRank(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(rank[parentX] < rank[parentY]){
+             parent[parentX] = parentY;//we do this not the other way around
+             //like parent[parentY] = parentX for this condition
+             //coz to make size minimal of union and
+             //so that parent retireval time for larger rank graph is made as minimum
+             //as possible.
+         }
+         else if(rank[parentX] > rank[parentY]){
+             parent[parentY] = parentX;
+         }
+         else{
+             parent[parentX] = parentY;
+             rank[parentY]++;
+         }
+	}
+
+    void unionSetBySize(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(size[parentX] < size[parentY]){
+             parent[parentX] = parentY;
+             size[parentY] = size[parentY] + size[parentX];
+         }
+         else{
+             parent[parentY] = parentX;
+             size[parentX] = size[parentY] + size[parentX];
+         }
+    
+	}
+}
+class Solution {
+    public int makeConnected(int n, int[][] connections) {
+
+        int noComponents = n;
+        int wires = 0;
+        DisjointSet ds = new DisjointSet(n);
+        for(int[] edge : connections){
+            if(ds.find(edge[0])!=ds.find(edge[1])){
+                noComponents-=1;
+                ds.unionSetByRank(edge[0], edge[1]);
+            }
+            else wires++;
+        }
+        noComponents--;
+        if(wires >= noComponents) return noComponents;
+        else return -1;
+
+        //Second intution
+        DisjointSet ds = new DisjointSet(n);
+        int cntExtras = 0;
+        int m = connections.length;
+        for (int i = 0; i < m ; i++) {
+            int u = connections[i][0];
+            int v = connections[i][1];
+            if (ds.findUPar(u) == ds.findUPar(v)) {//if parents same then
+                //this edge is not required and therefore can be counted as
+                //extra edge
+                cntExtras++;
+            } else {
+                ds.unionBySize(u, v);//if parents are different then make edge b/w them
+            }
+        }
+        int cntC = 0;
+        for (int i = 0; i < n; i++) {
+            if (ds.parent.get(i) == i) cntC++;//if parent of node is node itself
+            //then it means its master parent node ..counting total parents nodes
+            //by looping thru all nodes will gives total no of components in graph
+            // as each component has only has master parent.
+        }
+        int ans = cntC - 1;//n components need n-1 edges to become 1 component
+        if (cntExtras >= ans) return ans;
+        return -1;
+    }
+}

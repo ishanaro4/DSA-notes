@@ -1,0 +1,85 @@
+// Given a sorted dictionary of an alien language having N words and k starting alphabets of standard dictionary. 
+//Find the order of characters in the alien language.
+// Note: Many orders may be possible for a particular test case, 
+//thus you may return any valid order and output will be 1 
+//if the order of string returned by the function is correct else 0 denoting incorrect string returned.
+ 
+
+// Example 1:
+
+// Input: 
+// N = 5, K = 4
+// dict = {"baa","abcd","abca","cab","cad"}
+
+//we would check each consecutive two string (0,1)(1,2)(2,3) in pairs and in each
+//comparison of two strings starting from (0,1)..we match characters ..if at any time
+//we find two unequal characters we make edge from that 0's character to 1's character
+//(because we are given order in alien dictionary so 0th string appears before 1th string in dict)
+//then graph will be consturcted which we can use toposort to find order
+class Solution
+{
+    public String topoSort(int V, List<List<Integer>> adj) 
+    {
+        // add your code here
+        int[] ans = new int[V];
+        int j=0;//travering the ans array
+        //travering the adjacency list to create indegree array
+        int[] indegree = new int[V];
+        for(int i=0;i<V;i++){
+            for(int elem : adj.get(i)){
+                indegree[elem]++;
+            }
+        }
+        Deque<Integer> queue = new ArrayDeque<>();
+        for(int i=0;i<V;i++){
+            if(indegree[i]==0)queue.add(i);//pushing all 0 indegree elem to queue
+        }//even if multiple components exist,all elem with indegree 0 would be
+        //added to the queue
+        
+        //remove element from queue(until empty) and as you remove
+        //element, decrement its neighbours indegree by 1 and if 
+        //neigbour indegree becomes 0 add it to queue.
+        while(!queue.isEmpty()){
+            int temp = queue.remove();
+            ans[j++] = temp;
+            for(int i : adj.get(temp)){
+                indegree[i]--;
+                if(indegree[i]==0)queue.add(i);
+            }
+        }
+        String s="";
+        for(int i=0;i<V;i++){
+            s+= (char)(ans[i]+ (int)('a'));
+        }
+        return s;
+        
+        
+        
+    }
+    
+    public String findOrder(String [] dict, int N, int K)
+    {
+        // Write your code here
+        List<List<Integer>> adj = new ArrayList<>();
+        for(int i=0;i<K;i++) adj.add(new ArrayList<>());
+        for(int i=0;i<N-1;i++){
+            String first = dict[i];
+            String second = dict[i+1];
+            int len = Math.min(first.length(), second.length());
+            for(int j = 0;j<len;j++){
+                if(first.charAt(j)!=second.charAt(j)){
+                    adj.get(first.charAt(j) - 'a').add(second.charAt(j)-'a');
+                    break;
+                }
+            }
+        }
+        return topoSort(K, adj);
+        
+        
+    }
+}
+
+//question - when the order is not possible?
+//ans - if two strings are given (abcd, abc) then whtehr its alein or not , abc should had
+//appeared before abcd. and second cycle exist (abc, bcd, adc), a--b--a not possible i.e
+//given dictionary is wrong

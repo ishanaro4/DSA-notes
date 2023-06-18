@@ -1,0 +1,121 @@
+// Given an integer array nums and an integer k, return the k most frequent elements.
+//  You may return the answer in any order.
+
+// Example 1:
+
+// Input: nums = [1,1,1,2,2,3], k = 2
+// Output: [1,2]
+// Example 2:
+
+// Input: nums = [1], k = 1
+// Output: [1]
+ 
+
+// Constraints:
+
+// 1 <= nums.length <= 105
+// -104 <= nums[i] <= 104
+// k is in the range [1, the number of unique elements in the array].
+// It is guaranteed that the answer is unique.
+
+
+class Solution {
+    int[] unique;
+    Map<Integer, Integer> count;
+
+    public void swap(int a, int b){
+        int temp = unique[a];
+        unique[a]=unique[b];
+        unique[b] = temp;
+    }
+    // Lomuto's Partition Scheme
+    // There is a zoo of partition algorithms. The most simple
+    // one is Lomuto's Partition Scheme,(move less frequent elements to the left of pivot,
+    //and more frequent or of the same frequency - to the right.)
+    // and so is what we will use in this article.
+
+    // Here is how it works:
+
+    // Move pivot at the end of the array using swap.
+
+    // Set the pointer at the beginning of the array store_index = left.
+
+    // Iterate over the array and move all less frequent elements
+    // to the left
+    // swap(store_index, i). Move store_index one step to the
+    // right after each swap.
+
+    // Move the pivot to its final place, and return this index.
+    public int partition(int left, int right, int pivot_index){
+        int pivot_frequency = count.get(unique[pivot_index]);
+        swap(pivot_index, right);
+        int store_index = left;
+
+        for(int i = left;i<=right;i++){
+            if(count.get(unique[i]) < pivot_frequency){//move all less frequent elements to the left
+                swap(i, store_index);
+                store_index++;//stores index where next lesser frequence element would come
+            }
+        }
+
+        swap(store_index, right);//move pivot to its final place
+        return store_index;
+    }
+
+    public void quickselect(int left, int right, int k_smallest){//intially k_smallest is n-k as we have to find k frequent element so if we get n-k th element then all elements to rights would be part of k frequent
+        if(left==right) return;
+
+        Random random_num = new Random();
+        int pivot_index = left + random_num.nextInt(right - left);
+
+        pivot_index = partition(left, right, pivot_index);
+        // if the pivot is in its final sorted position
+        if(k_smallest == pivot_index) return;
+        else if(k_smallest < pivot_index){
+            //go left
+            quickselect(left, pivot_index-1, k_smallest);
+        }
+        else{
+            //go right
+            quickselect(pivot_index+1, right, k_smallest);
+        }
+
+
+    }
+    public int[] topKFrequent(int[] nums, int k) {
+        //quickselect algorithm(Hoare's selection algorithm)
+        //Quickselect is a textbook algorithm
+        // typically used to solve the problems "find kth something":
+        // kth smallest, kth largest, kth most frequent,
+        // kth less frequent, etc. 
+
+        //It has O(N) average time complexity and is widely used
+        // in practice. It worth noting that its worst-case time complexity
+        // is O(N^2)
+        // , although the probability of this worst-case
+        // is negligible.
+        //1st Step = Build a hashmap with element to frequencies mapping (count) and store
+        //all keys in unique
+        count = new HashMap<>();
+        for(int num : nums){
+            count.put(num, count.getOrDefault(num, 0)+1);
+        }
+        int n = count.size();//all unique keys counted
+        unique = new int[n];
+        int i=0;
+        for(int num : count.keySet()){
+            unique[i]=num;
+            i++;
+        }
+        // kth top frequent element is (n - k)th less frequent.
+        // Do a partial sort: from less frequent to the most frequent, till
+        // (n - k)th less frequent element takes its place (n - k) in a sorted array. 
+        // All element on the left are less frequent.
+        // All the elements on the right are more frequent.
+        quickselect(0, n-1, n-k);
+        //Return top k frequent elements
+        return Arrays.copyOfRange(unique, n-k, n);
+
+
+    }
+}

@@ -1,0 +1,87 @@
+// Given a wooden stick of length n units.
+//  The stick is labelled from 0 to n. 
+//  For example, a stick of length 7 is labelled as follows:
+// ----------------------
+// 0  1  2  3  4  5  6  7
+// Given an integer array cuts where cuts[i] denotes a position you should perform a cut at.
+
+// You should perform the cuts in order, you can change the order of the cuts as you wish.
+
+// The cost of one cut is the length of the stick to be cut, the total cost is the sum of costs of all cuts. 
+// When you cut a stick, it will be split into two smaller sticks 
+// i.e if we cut above stick at 3 then
+// ----------     -------------
+// 0  1  2  3     3  4  5  6  7
+// (i.e. the sum of their lengths is the length of the stick before the cut). 
+// Please refer to the first example for a better explanation.
+
+// Return the minimum total cost of the cuts.
+
+
+
+
+class Solution {
+    //Memoization solution - TC - 
+    //i(1->cuts.length)
+    //j(1<-cuts.length)
+    //for each i and j , k is approx running for cuts.length times
+    //therefore TC = O(N^3)
+    //SC - O(N^2) + AUXILLARY STACK SPACE
+    public int helper(int i, int j, List<Integer> cuts1, int[][] dp){
+        if(i>j) return 0;
+        if(dp[i][j]!=-1) return dp[i][j];
+        int mini = (int)1e9;
+        for(int k =i;k<=j;k++){
+            int cost = cuts1.get(j+1) - cuts1.get(i-1) + helper(i, k-1, cuts1, dp) + helper(k+1, j, cuts1, dp);
+            if(cost < mini) mini = cost;
+        }
+
+        return dp[i][j] = mini;
+    }
+    public int minCost(int n, int[] cuts) {
+        List<Integer> cuts1 = new ArrayList<>();
+        //IF n = 7, cuts = [1,3,4,5]
+        // then make this array as [0, 1, 3, 4, 5, 7] add 0 in front and n in end
+        //                             i        j
+        // so that if we cut anywhere strating from 1 to cuts.length
+        //we can get cost(length of stick) as cuts1[j+1] - cuts[i-1] = 7-0=7
+        //say we cut at 3 then we will get f(i, k-1), f(k+1, j)
+        //[0, 1, 3, 4, 5, 7]   [0,1,3,4 , 5, 7]-->now applying same formula=7-3=4
+        //j   i                       i   j
+        //                                        length will be 4 as cut at 3 will make stick as 3 4 5 6 7 which is length 4
+        //we didnt took f(i,k), f(k,j) as in next recursion it will 
+        //cut at i again as k goes from k=[i,j]
+        cuts1.add(0);
+        for(int i : cuts) cuts1.add(i);
+        cuts1.add(n);
+        Collections.sort(cuts1);//sort the array to make smaller subproblems independent
+        //say 0[3, 1, 5, 2]7 now we cut at 1 then [3] and [5,2] remains where
+        //2 in [5,2] concides with 0[3] so interrelated.
+        int[][] dp = new int[cuts.length+1][cuts.length+1];
+        for(int[] row : dp) Arrays.fill(row, -1);
+        return helper(1, cuts.length, cuts1, dp);
+
+        //Bottom up solution (To remove auxiallry stack space)
+        List<Integer> cuts1 = new ArrayList<>();
+        cuts1.add(0);
+        for(int i : cuts) cuts1.add(i);
+        cuts1.add(n);
+        Collections.sort(cuts1);
+        int[][] dp = new int[cuts.length+2][cuts.length+2];
+        for(int[] row : dp) Arrays.fill(row, 0);
+
+        for(int i= cuts.length;i>=1;i--){
+            for(int j=1;j<=cuts.length;j++){
+                if(i>j) continue;
+                int mini = (int)1e9;
+                for(int k =i;k<=j;k++){
+                    int cost = cuts1.get(j+1) - cuts1.get(i-1) + dp[i][k-1] + dp[k+1][j];
+                    if(cost < mini) mini = cost;
+                }
+
+                 dp[i][j] = mini;
+            }
+        }
+        return dp[1][cuts.length];
+    }
+}

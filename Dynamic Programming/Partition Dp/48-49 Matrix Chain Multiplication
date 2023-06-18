@@ -1,0 +1,63 @@
+// Given a sequence of matrices, find the most efficient way to multiply these matrices together. 
+//The efficient way is the one that involves the least number of multiplications.
+// The dimensions of the matrices are given in an array arr[] of size N 
+//(such that N = number of matrices + 1) where the ith matrix has the dimensions (arr[i-1] x arr[i]).
+
+// Example 1:
+
+// Input: N = 5
+// arr = {40, 20, 30, 10, 30}
+// Output: 26000
+// Explaination: There are 4 matrices of dimension 
+// 40x20, 20x30, 30x10, 10x30. Say the matrices are 
+// named as A, B, C, D. Out of all possible combinations,
+// the most efficient way is (A*(B*C))*D. 
+// The number of operations are -
+// 20*30*10 + 40*20*10 + 40*10*30 = 26000.
+
+
+
+
+//Solution
+// [40   20  30  10  30]
+//        1   2   3   4
+//        i           j   (initial configuration)
+//        k-->k-->k       (partitions only till j-1)
+//main thing to remember try every partition with k in loop 
+//and find the min from all 
+class Solution{
+    
+    static int helper(int i, int j, int arr[], int[][] dp){//memoization version
+        if(i==j) return 0;
+        if(dp[i][j]!=-1) return dp[i][j];
+        int mini = (int)1e9;
+        for(int k = i;k<j;k++){
+            int steps = arr[i-1]*arr[k]*arr[j] + helper(i, k, arr, dp) + helper(k+1, j, arr, dp);
+            //A=[40, 20], B=[20,30]  C=[30,10]   D=[10,30]
+            //AB would require multiplications = (40*20)x(20*30) = 40*20*30
+            //                                        i    k  j
+            if(steps< mini) mini = steps;
+        }
+        return dp[i][j] = mini;
+    }
+    static int matrixMultiplication(int N, int arr[])
+    {
+        // code here
+        int dp[][] = new int[N][N];
+        //for(int row[] : dp) Arrays.fill(row, -1); for top down memoization
+        //return helper(1, N-1, arr, dp);
+        for(int row[] : dp) Arrays.fill(row, 0); //for bottom up(from base case)
+        
+        for(int i=N-1;i>=1;i--){
+            for(int j = i+1;j<N;j++){
+                int mini = (int)1e9;
+                for(int k = i;k<j;k++){
+                    int steps = arr[i-1]*arr[k]*arr[j] + dp[i][k] + dp[k+1][j];
+                    if(steps< mini) mini = steps;
+                }
+                dp[i][j] = mini;
+            }
+        }
+        return dp[1][N-1];
+    }
+}

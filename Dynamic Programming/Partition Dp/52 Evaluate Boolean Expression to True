@@ -1,0 +1,80 @@
+// Given a boolean expression S of length N with following symbols.
+// Symbols
+//     'T' ---> true
+//     'F' ---> false
+// and following operators filled between symbols
+// Operators
+//     &   ---> boolean AND
+//     |   ---> boolean OR
+//     ^   ---> boolean XOR
+// Count the number of ways we can parenthesize the expression so that the value of expression evaluates to true.
+//return number of possible ways modulo 1003.
+
+// Example 1:
+
+// Input: N = 7
+// S = T|T&F^T
+// Output: 4
+// Explaination: The expression evaluates 
+// to true in 4 ways ((T|T)&(F^T)), 
+// (T|(T&(F^T))), (((T|T)&F)^T) and (T|((T&F)^T)).
+
+class Solution{
+    static int mod1 = 1003;
+    static int helper(int i, int j, int isTrue, String S, int dp[][][]){
+        if(i>j) return 0;
+        if(dp[i][j][isTrue]!=-1) return dp[i][j][isTrue];
+        if(i==j){
+            if(isTrue==1){
+                return S.charAt(i)=='T'?1:0;
+            }
+            else{
+                return S.charAt(i)=='F'?1:0;
+            }
+        }
+        int ways = 0;
+        for(int index=i+1;index<=j-1;index+=2){
+            int rt = helper(index+1, j, 1, S, dp);
+            int rf = helper(index+1, j, 0, S, dp);
+            int lt = helper(i, index-1, 1, S, dp);
+            int lf = helper(i, index-1, 0, S, dp);
+            
+            if(S.charAt(index)=='&'){
+                if(isTrue==1){
+                    ways =  (ways+ (lt*rt)%mod1)%mod1;
+                }
+                else{
+                    ways = (ways+ (lf*rt)%mod1+(lt*rf)%mod1 + (lf*rf)%mod1)%mod1;
+                }
+            }
+            else if(S.charAt(index)=='|'){
+                if(isTrue==1){
+                    ways = (ways+ (lt*rt)%mod1+(lf*rt)%mod1+(lt*rf)%mod1)%mod1;
+                }
+                else{
+                    ways = (ways+ (lf*rf)%mod1)%mod1;
+                }
+            }
+            else{
+                if(isTrue==1){
+                    ways = (ways+ (lt*rf)%mod1+(lf*rt)%mod1)%mod1;
+                }
+                else{
+                    ways = (ways+ (lt*rt)%mod1 + (lf*rf)%mod1)%mod1;
+                }
+            }
+        }
+        
+        return dp[i][j][isTrue] = ways;
+    }
+    static int countWays(int N, String S){
+        // code here
+        int dp[][][] = new int[S.length()][S.length()][2];
+        for(int[][] rows : dp){
+            for(int[] row : rows){
+                Arrays.fill(row,-1);
+            }
+        }
+        return helper(0,S.length()-1, 1, S, dp);
+    }
+}

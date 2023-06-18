@@ -1,0 +1,41 @@
+//TC AND SC - SAME AS DFS
+//shortcut - find topoligical sort using kahn's and if final ans count !=vertices then cycle otherwise not
+class Solution {
+    // Function to detect cycle in an undirected graph.
+    public boolean dfs(int node, boolean[] visited, ArrayList<ArrayList<Integer>> adj, boolean[] pathvisited){
+        visited[node] = true;
+        pathvisited[node] = true;
+        for(int nei : adj.get(node)){
+            if(visited[nei]==false){
+                if(dfs(nei, visited, adj,pathvisited)==true) return true;
+            }
+            else{
+                if(pathvisited[nei] == true) return true;
+            }
+        }
+        pathvisited[node] = false;
+        return false;
+    }
+    public boolean isCyclic(int V, ArrayList<ArrayList<Integer>> adj) {
+        // Code here
+        boolean[] visited = new boolean[V];
+        boolean[] pathvisited = new boolean[V];
+        for(int i=0;i<V;i++){
+            if(visited[i]==false){
+                if(dfs(i, visited, adj,pathvisited)==true) return true;
+            }
+        }
+        return false;
+        
+    }
+}
+//previous solution for undirected graph wont work coz take it example
+// 1-->2-->3-->4-->5-->6  //dfs 3 to 4 to 5 to 6 then will return 6 to 5 to 4 to 3then will 
+//         |       ^      //visit 7 then will see 5(not parent) is already visited there must
+//         v       |      //cycle but there is not 
+//         7------->
+//SOLUTION
+//as we return from dfs we will consider new array path array 
+//and mark path of returbning node as false again 
+//but visited still true(so we dont this visite node again) 
+//meaning this particular path is ss=earched and nothing found so going back 

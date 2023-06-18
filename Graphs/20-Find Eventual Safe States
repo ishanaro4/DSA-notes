@@ -1,0 +1,63 @@
+// There is a directed graph of n nodes with each node labeled from 0 to n - 1. 
+// The graph is represented by a 0-indexed 2D integer array graph where graph[i] 
+// is an integer array of nodes adjacent to node i, meaning there is an edge from node i to each node in graph[i].
+// A node is a terminal node if there are no outgoing edges.
+// A node is a safe node if every possible path starting from that node leads to a terminal node (or another safe node).
+// Return an array containing all the safe nodes of the graph. The answer should be sorted in ascending order.
+
+
+//Solution
+//using cycles in directed graph logic  --- if any node is part of cycle then not all path leads to
+//terminal node therefore unsafe node .and if node leades to unsafe node then that node is unsafe as well
+//if node doest not encounter any cycle in any neigbours then we mark safe==1 for that but if 
+//we found cycle in neihgbour we return true and we dont visit (-- mentioned below)
+//and keep returning because of if condition in line 22.
+
+//SOLUTION II
+//use topological sort kahn algo..first reverse the graph edges for all..
+//now terminal node would become node with indegree 0
+//now store all and start the algo..the nodes in cycles would be left which will be unsafe.
+//and all others going into the queue with indegree 0 will be safe.
+
+class Solution {
+    // Function to detect cycle in an undirected graph.
+     boolean dfs(int node, boolean[] visited, int[][] adj, boolean[] pathvisited, int [] safe, boolean []unsafe){
+        visited[node] = true;
+        pathvisited[node] = true;
+        for(int nei : adj[node]){
+            if(visited[nei]==false){
+                if(dfs(nei, visited, adj,pathvisited, safe, unsafe)==true)
+                    return true;
+            }
+            else{
+                if(pathvisited[nei] == true){
+                    return true;
+            }
+        }
+        }
+        pathvisited[node] = false;//--
+        safe[node]=1;//--
+        return false;//--
+     }
+     List<Integer> eventualSafeNodes(int[][] adj) {
+        // Code here
+        int V = adj.length;
+        boolean[] visited = new boolean[V];
+        boolean[] pathvisited = new boolean[V];
+        int [] safe = new int[V];
+        Arrays.fill(safe, 0);
+        boolean []unsafe = new boolean[1];
+        for(int i=0;i<V;i++){
+            if(visited[i]==false){
+                dfs(i, visited, adj,pathvisited, safe, unsafe);
+            }
+        }
+        List<Integer> ans = new ArrayList<>();
+        for(int i=0;i<V;i++){
+            if(safe[i]==1) ans.add(i);
+        }
+        return ans;
+
+        
+    }
+}//TC AND SC - DFS

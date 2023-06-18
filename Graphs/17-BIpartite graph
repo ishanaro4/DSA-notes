@@ -1,0 +1,43 @@
+//bipartite graph - which u can color with only two colors and every alternate node is different color 
+//all linear graph along with graph with even length cycle  - bipartite
+//others odd length - !!not bipartite 
+
+//You are given a 2D array graph, where graph[u] is an array of nodes that node u is adjacent to.
+//graph = [[1,2,3],[0,2],[0,1,3],[0,2]]
+//simple bfs algortihm - give intial node 0 and now keep giving neigbours 1 - intialnodeColor.
+class Solution {
+
+    public boolean check(int i, int[][] graph, int[] color){
+        Deque<Integer> queue = new ArrayDeque<>();
+        queue.add(i);
+        color[i]=0;
+        while(!queue.isEmpty()){
+            int temp = queue.remove();
+            for(int adj : graph[temp]){
+
+                if(color[adj]==-1){//if not colored yet color it with different color from temp node
+                    queue.add(adj);
+                    color[adj] = 1-color[temp];
+                }
+                else{ //if while checking u found neighbour has same color as temp node - not bipartite
+                    if(color[adj]==color[temp]) return false;
+                }
+            }
+        }
+        return true;
+
+    }
+    public boolean isBipartite(int[][] graph) {
+        int n = graph.length;
+        int[] color = new int[n];
+        Arrays.fill(color, -1);
+        for(int i=0;i<n;i++){// in case of connected components graph
+            if(color[i]==-1){
+                if(check(i, graph, color)==false) return false;
+            }
+        }
+        return true;//time complexity - O(V) + O(V+2E)
+        //SPACE COMPLEXITY O(V+2E)
+
+    }
+}

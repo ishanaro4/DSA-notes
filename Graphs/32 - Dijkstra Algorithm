@@ -1,0 +1,56 @@
+// Given a weighted, undirected and connected graph of V vertices and an adjacency list adj 
+// where adj[i] is a list of lists containing two integers where the first integer of each list 
+// j denotes there is edge between i and j , second integers corresponds to the weight of that 
+//  edge . You are given the source vertex S and You to Find the shortest distance of all the 
+//  vertex's from the source vertex S. You have to return a list of integers denoting 
+//  shortest distance between each node and Source vertex S.
+ 
+// Note: The Graph doesn't contain any negative weight cycle -important condition for Dijkstra algo
+
+
+//Time complexity  - E*logV
+
+class Pair{
+    int distance;
+    int node;
+    Pair(int distance, int node){
+        this.distance = distance;
+        this.node = node;
+    }
+}
+class Solution//same as bfs solution instead of queue we use minheap and we relax the edges
+//depending on distacne value and if node gets relaxed we put it in priorirty queue to 
+//relax other neghbouring nodes connected to it in ahead turns.
+{
+    //Function to find the shortest distance of all the vertices
+    //from the source vertex S.
+    static int[] dijkstra(int V, ArrayList<ArrayList<ArrayList<Integer>>> adj, int S)
+    {
+        // Write your code here
+        PriorityQueue<Pair> minheap = new PriorityQueue<>((a,b) -> a.distance - b.distance);//IMP
+        int[] distance = new int[V];
+        Arrays.fill(distance, (int)1e9);
+        distance[S] = 0;
+        minheap.add(new Pair(0, S));
+        while(!minheap.isEmpty()){//at worst something*V Pairs would come into minheap
+            Pair temp = minheap.remove();//log(minheap_size)
+            for(ArrayList<Integer> neighbour : adj.get(temp.node)){//in worst in dense graph
+                //every nod eis connected to every other node therefore V-1 neighbours for each
+                int nei = neighbour.get(0);
+                int nei_dist = neighbour.get(1);
+                if(temp.distance + nei_dist < distance[nei]){
+                    distance[nei] = temp.distance + nei_dist;
+                    minheap.add(new Pair(distance[nei], nei));//log(minheap_size)
+                }
+            }
+        }//THEREFORE V(log(minheap_size) + (V-1)LOG(minheap_size))
+        //=V*2(log(minheap_size))
+        //dense graph every neighbour(V-1) of node would come in minheap therefore V*(V-1) minheap_size
+        //=VV(LOGVV)
+        //=2VVLOGV
+        //=ELOGV (VV = E in dense graph as every node is coonected to V-1 therefore total edges
+        // is equal to v(v-1)=vv)
+        return distance;
+    }
+}
+

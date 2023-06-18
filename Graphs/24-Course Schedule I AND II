@@ -1,0 +1,45 @@
+//There are a total of V courses you have to take, labeled from 0 to V - 1. 
+//You are given an array prerequisites where prerequisites[i] = [ai, bi] 
+//indicates that you must take course bi first if you want to take course ai.
+//For example, the pair [0, 1], indicates that to take course 0 you have to first take course 1.
+//Return true if you can finish all courses. Otherwise, return false.
+
+// Logic - if cycle exists then we wont be able to finsih the courses
+//I-
+class Solution {
+    public boolean canFinish(int V, int[][] prerequisites) {//FINDING cycle using kahn algo
+        //travering the adjacency list to create indegree array
+        List<List<Integer>> adj = new ArrayList<>();
+        for(int i=0;i<V;i++) adj.add(new ArrayList<>());
+        for(int i=0;i<prerequisites.length;i++){
+            adj.get(prerequisites[i][1]).add(prerequisites[i][0]);
+        }
+        int count = 0;
+        int[] indegree = new int[V];
+        for(int i=0;i<V;i++){
+            for(int elem : adj.get(i)){
+                indegree[elem]++;
+            }
+        }
+        Deque<Integer> queue = new ArrayDeque<>();
+        for(int i=0;i<V;i++){
+            if(indegree[i]==0)queue.add(i);//pushing all 0 indegree elem to queue
+        }//even if multiple components exist,all elem with indegree 0 would be
+        //added to the queue
+        
+        //remove element from queue(until empty) and as you remove
+        //element, decrement its neighbours indegree by 1 and if 
+        //neigbour indegree becomes 0 add it to queue.
+        while(!queue.isEmpty()){
+            int temp = queue.remove();
+            count++;
+            for(int i : adj.get(temp)){
+                indegree[i]--;
+                if(indegree[i]==0)queue.add(i);
+            }
+        }
+        if(count==V) return true;
+        else return false;
+    }
+}
+//II - u have to return ordering ..jus add temp to queue each time and return afterwards.

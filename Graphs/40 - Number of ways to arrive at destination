@@ -1,0 +1,74 @@
+// You are in a city that consists of n intersections numbered from 0 to n - 1
+//  with bi-directional roads between some intersections. 
+//  The inputs are generated such that you can reach any intersection 
+//  from any other intersection and that there is at most one road between 
+//  any two intersections.
+
+// You are given an integer n and a 2D integer array roads where 
+// roads[i] = [ui, vi, timei] means that there is a road between 
+// intersections ui and vi that takes timei minutes to travel. 
+// You want to know in how many ways you can travel from intersection 0 to intersection n - 1 
+// in the shortest amount of time.
+
+// Return the number of ways you can arrive at your destination in the shortest amount of time. 
+// Since the answer may be large, return it modulo 109 + 7.
+//https://leetcode.com/problems/number-of-ways-to-arrive-at-destination/description/
+
+//TC-ELOGV
+
+//LOGIC - Suppose we reach the destination for the first time,
+//now as we are using priority queue we are sure that distance calculated for 
+//this dest node is smallest one.But now there might be others paths to reach destination
+//other than this path.now if we reach dest from other node with same smallest distance 
+// as first then we add this path into your answer as well.
+//How we calculating ways to reach destination?
+//simple if say we have dest node
+//    node x ---------> dest node
+//    node y------------^
+//then ways[destnode] = ways[to reach node x] + ways[to reach node y]
+//it CANT simply be ways[dest] = 2 as node x or y might have been reached from 
+//many different paths, so we have to take into account for that as well.
+class Pair{
+    int node;
+    long time;
+    Pair(long time, int node ){
+        this.node = node;
+        this.time = time;
+    }
+}
+
+class Solution {
+    int mod = (int)(1e9+7);
+    public int countPaths(int n, int[][] roads) {
+        List<List<Pair>> adj = new ArrayList<>();
+        for(int i=0;i<n;i++) adj.add(new ArrayList<Pair>());
+        for(int[] road : roads){
+            adj.get(road[0]).add(new Pair(road[2], road[1]));
+            adj.get(road[1]).add(new Pair(road[2], road[0]));
+        }
+        PriorityQueue<Pair> minheap = new PriorityQueue<Pair>((a,b)-> (int)(a.time-b.time));
+        minheap.add(new Pair(0, 0));
+        long[] time_dist = new long[n];
+        int[] ways = new int[n];
+        Arrays.fill(ways, 0);
+        Arrays.fill(time_dist, (long)1e12);
+        time_dist[0]=0;
+        ways[0]=1;
+        while(!minheap.isEmpty()){
+            Pair temp = minheap.remove();
+            for(Pair nei : adj.get(temp.node)){
+                int nei_node = nei.node;
+                long nei_time = nei.time;
+                if(temp.time + nei_time < time_dist[nei_node]){//first time
+                    time_dist[nei_node] = temp.time + nei_time;
+                    ways[nei_node] = ways[temp.node];
+                    minheap.add(new Pair( time_dist[nei_node], nei_node));
+                }
+                else if(temp.time + nei_time == time_dist[nei_node]){//second time with small smallest distance
+                    ways[nei_node]= ( ways[nei_node] + ways[temp.node])%mod;
+                }
+            }
+        }
+        return ways[n-1]%mod;
+    }
+}
