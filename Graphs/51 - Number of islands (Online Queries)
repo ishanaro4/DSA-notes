@@ -1,0 +1,123 @@
+// You are given a n,m which means the row and column of the 2D matrix and an array of  size k denoting the number of operations. 
+// Matrix elements is 0 if there is water or 1 if there is land. Originally, the 2D matrix is all 0 which means there is no land in the matrix. 
+// The array has k operator(s) and each operator has two integer A[i][0], A[i][1] means that you can change the cell matrix[A[i][0]][A[i][1]] from sea to island. 
+// Return how many island are there in the matrix after each operation.You need to return an array of size k.
+// Note : An island means group of 1s such that they share a common side.
+
+// Input: n = 4
+// m = 5
+// k = 4
+// A = {{1,1},{0,1},{3,3},{3,4}}
+
+// Output: 1 1 2 2
+// https://practice.geeksforgeeks.org/problems/number-of-islands/1
+
+
+class DisjointSet//time complexity for both operations= O(4ALPHA) where
+//alpha is some constant
+{
+    int rank[];//where N is number of nodes
+    int size[];
+    int parent[];
+    DisjointSet(int n){
+        rank = new int[n+1];
+        size = new int[n+1];
+        parent = new int[n+1];
+        for(int i=0;i<=n;i++) parent[i]=i;
+        Arrays.fill(rank, 0);
+        Arrays.fill(size, 1);//coz intially all will have size 1
+    }
+	int find(int X)//find parent
+        {
+          //add code here.
+          if(parent[X]==X) return X;
+          int par = find(parent[X]);
+          parent[X] = par;
+          return par;
+          
+	}
+	void unionSetByRank(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(rank[parentX] < rank[parentY]){
+             parent[parentX] = parentY;//we do this not the other way around
+             //like parent[parentY] = parentX for this condition
+             //coz to make size minimal of union and
+             //so that parent retireval time for larger rank graph is made as minimum
+             //as possible.
+         }
+         else if(rank[parentX] > rank[parentY]){
+             parent[parentY] = parentX;
+         }
+         else{
+             parent[parentX] = parentY;
+             rank[parentY]++;
+         }
+	}
+
+    void unionSetBySize(int X,int Y)
+        {
+         //add code here.
+         int parentX = find(X);
+         int parentY = find(Y);
+         if(parentX==parentY) return;
+         if(size[parentX] < size[parentY]){
+             parent[parentX] = parentY;
+             size[parentY] = size[parentY] + size[parentX];
+         }
+         else{
+             parent[parentY] = parentX;
+             size[parentX] = size[parentY] + size[parentX];
+         }
+    
+	}
+}
+class Solution {
+    
+    public List<Integer> numOfIslands(int rows, int cols, int[][] operators) {
+        
+    //Given matrix[4][5] the matrix would look like
+    
+    //[0, 1, 2, 3, 4]
+    //[5, 6, 7, 8, 9]
+    //[10,11,12,13,14]
+    //[15,16,17,18,19]
+    //i.e we have to number each point in matrix so that we can apply DSU latter on as DSU plays with nodes only.
+    //why dsu? coz island is being created dynamically and for dynamic graphs mostly DSU is used
+    //give. any (row, col) the point on matrix is defined as = row*cols + col;
+        DisjointSet ds = new DisjointSet(rows*cols-1);
+        List<Integer> ans = new ArrayList<>();
+        int count=0;
+        boolean[][] visited = new boolean[rows][cols];//visited array to check if same query is run again twice and 
+        //to mark previous query as 1(part of island) i.e if on checking neigbours we get visited as 1 that means its a island
+        
+        int delrow[] = {-1,1,0,0};//for checking all four directions
+        int delcol[] = {0,0,-1,1};
+        for(int[] node : operators){
+            int node1 = node[0];
+            int node2 = node[1];
+            int node_num = node1*cols + node2;//defined above (row*cols + col)
+            if(visited[node1][node2]==false){//if we are seeing this query for first time
+                count++;//initally count it as alone so increase components by 1
+                visited[node1][node2]=true;//mark is as island
+                for(int k=0;k<4;k++){
+                    int row = node1+delrow[k];
+                    int col = node2+delcol[k];
+                    int nei_num = row*cols + col;
+                    if(row>=0&&row<rows&&col>=0&&col<cols&&visited[row][col]==true){
+                        if(ds.find(node_num)!=ds.find(nei_num)){//if both dont have same parent 
+                            count--;//make edge between the nodes points and obv decrease the components by 1
+                            ds.unionSetByRank(node_num, nei_num);
+                        }
+                    }
+                }
+            }
+            ans.add(count);
+        }
+        return ans;
+    }
+    
+}
